@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"chezmoi.io/chezmoi/internal/chezmoi"
 )
 
@@ -34,4 +36,14 @@ func (c *Config) externalChezmoiPaths(
 		cacheDir = c.CacheDirAbsPath.JoinString(chezmoiExternalsSubdir, slug)
 	}
 	return
+}
+
+// chezmoiBinaryPath returns the path to the chezmoi binary to invoke for
+// chezmoi-type externals. Falls back to "chezmoi" in PATH if os.Executable
+// fails.
+func (c *Config) chezmoiBinaryPath() string {
+	if path, err := os.Executable(); err == nil {
+		return path
+	}
+	return "chezmoi"
 }

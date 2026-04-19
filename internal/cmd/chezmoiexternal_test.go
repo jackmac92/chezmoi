@@ -56,3 +56,9 @@ func TestExternalChezmoiPaths_PartialOverride(t *testing.T) {
 	assert.Equal(t, "/home/u/.config/chezmoi/externals/work-dots/chezmoistate.boltdb", stateFile.String())
 	assert.Equal(t, "/home/u/.cache/chezmoi/externals/work-dots", cacheDir.String())
 }
+
+func TestChezmoiBinaryPath_NonEmpty(t *testing.T) {
+	c := &Config{}
+	got := c.chezmoiBinaryPath()
+	assert.NotEqual(t, "", got)
+}
