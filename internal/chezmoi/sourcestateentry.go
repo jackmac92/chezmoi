@@ -43,6 +43,7 @@ type SourceStateCommand struct {
 	forceRefresh  bool
 	refreshPeriod Duration
 	sourceAttr    SourceAttr
+	stateBucket   []byte
 }
 
 // A SourceStateDir represents the state of a directory in the source state.
@@ -124,6 +125,7 @@ func (s *SourceStateCommand) TargetStateEntry(destSystem System, destDirAbsPath 
 		forceRefresh:  s.forceRefresh,
 		refreshPeriod: s.refreshPeriod,
 		sourceAttr:    s.sourceAttr,
+		stateBucket:   s.stateBucket,
 	}, nil
 }
 

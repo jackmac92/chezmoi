@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"maps"
+	"os/exec"
 	"slices"
 	"testing"
 
@@ -110,6 +111,31 @@ func TestTargetStateEntryApply(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestTargetStateModifyDirWithCmd_UsesConfiguredBucket(t *testing.T) {
+	chezmoitest.WithTestFS(t, map[string]any{
+		"/home/user": &vfst.Dir{Perm: fs.ModePerm},
+	}, func(fileSystem vfs.FS) {
+		system := NewRealSystem(fileSystem)
+		ps := NewMockPersistentState()
+		target := &TargetStateModifyDirWithCmd{
+			cmdFunc:       func() *exec.Cmd { return exec.Command("true") },
+			stateBucket:   ChezmoiExternalStateBucket,
+			forceRefresh:  false,
+			refreshPeriod: 0,
+		}
+		actual := &ActualStateDir{absPath: NewAbsPath("/home/user")}
+		_, err := target.Apply(system, ps, actual)
+		assert.NoError(t, err)
+		// Data should be in the ChezmoiExternalStateBucket, not GitRepo.
+		got, err := ps.Get(ChezmoiExternalStateBucket, []byte("/home/user"))
+		assert.NoError(t, err)
+		assert.NotEqual(t, nil, got)
+		gotGit, err := ps.Get(GitRepoExternalStateBucket, []byte("/home/user"))
+		assert.NoError(t, err)
+		assert.Equal(t, []byte(nil), gotGit)
+	})
 }
 
 func targetStateTest(t *testing.T, ts TargetStateEntry) []vfst.PathTest {

@@ -31,6 +31,7 @@ type TargetStateModifyDirWithCmd struct {
 	forceRefresh  bool
 	refreshPeriod Duration
 	sourceAttr    SourceAttr
+	stateBucket   []byte
 }
 
 // A TargetStateDir represents the state of a directory in the target state.
@@ -101,7 +102,7 @@ func (t *TargetStateModifyDirWithCmd) Apply(
 
 	modifyDirWithCmdStateKey := []byte(actualStateEntry.Path().String())
 	if err := PersistentStateSet(
-		persistentState, GitRepoExternalStateBucket, modifyDirWithCmdStateKey, &ModifyDirWithCmdState{
+		persistentState, t.stateBucket, modifyDirWithCmdStateKey, &ModifyDirWithCmdState{
 			Name:  actualStateEntry.Path(),
 			RunAt: runAt,
 		}); err != nil {
@@ -130,7 +131,7 @@ func (t *TargetStateModifyDirWithCmd) SkipApply(persistentState PersistentState,
 		return false, nil
 	}
 	modifyDirWithCmdKey := []byte(targetAbsPath.String())
-	switch modifyDirWithCmdStateBytes, err := persistentState.Get(GitRepoExternalStateBucket, modifyDirWithCmdKey); {
+	switch modifyDirWithCmdStateBytes, err := persistentState.Get(t.stateBucket, modifyDirWithCmdKey); {
 	case err != nil:
 		return false, err
 	case modifyDirWithCmdStateBytes == nil:

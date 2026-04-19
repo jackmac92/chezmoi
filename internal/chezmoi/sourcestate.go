@@ -1310,6 +1310,7 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 					sourceAttr: SourceAttr{
 						External: true,
 					},
+					stateBucket: GitRepoExternalStateBucket,
 				}
 				allSourceStateEntries[externalRelPath] = append(allSourceStateEntries[externalRelPath], sourceStateCommand)
 			case err != nil:
@@ -1338,6 +1339,7 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 					sourceAttr: SourceAttr{
 						External: true,
 					},
+					stateBucket: GitRepoExternalStateBucket,
 				}
 				allSourceStateEntries[externalRelPath] = append(allSourceStateEntries[externalRelPath], sourceStateCommand)
 			}
