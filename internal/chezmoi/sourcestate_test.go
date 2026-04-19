@@ -2245,3 +2245,22 @@ func manyScripts(amount int) map[string]any {
 	}
 	return scripts
 }
+
+func TestExternalSlug(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		relPath  string
+		expected string
+	}{
+		{name: "simple", relPath: "foo", expected: "foo"},
+		{name: "slash", relPath: "a/b/c", expected: "a_b_c"},
+		{name: "dot-prefix", relPath: ".local/share/dots", expected: ".local_share_dots"},
+		{name: "backslash", relPath: `a\b`, expected: "a_b"},
+		{name: "colon", relPath: "a:b", expected: "a_b"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := externalSlug(NewRelPath(tc.relPath))
+			assert.Equal(t, tc.expected, got)
+		})
+	}
+}
