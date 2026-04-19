@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"maps"
 	"os/exec"
+	"runtime"
 	"slices"
 	"testing"
 
@@ -114,6 +115,9 @@ func TestTargetStateEntryApply(t *testing.T) {
 }
 
 func TestTargetStateModifyDirWithCmd_UsesConfiguredBucket(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on Windows: no 'true' binary available")
+	}
 	chezmoitest.WithTestFS(t, map[string]any{
 		"/home/user": &vfst.Dir{Perm: fs.ModePerm},
 	}, func(fileSystem vfs.FS) {
@@ -131,7 +135,7 @@ func TestTargetStateModifyDirWithCmd_UsesConfiguredBucket(t *testing.T) {
 		// Data should be in the ChezmoiExternalStateBucket, not GitRepo.
 		got, err := ps.Get(ChezmoiExternalStateBucket, []byte("/home/user"))
 		assert.NoError(t, err)
-		assert.NotEqual(t, nil, got)
+		assert.NotZero(t, got)
 		gotGit, err := ps.Get(GitRepoExternalStateBucket, []byte("/home/user"))
 		assert.NoError(t, err)
 		assert.Equal(t, []byte(nil), gotGit)
