@@ -2259,7 +2259,7 @@ func TestExternalSlug(t *testing.T) {
 		{name: "colon", relPath: "a:b", expected: "a_b"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			got := externalSlug(NewRelPath(tc.relPath))
+			got := ExternalSlug(NewRelPath(tc.relPath))
 			assert.Equal(t, tc.expected, got)
 		})
 	}

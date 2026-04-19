@@ -3142,10 +3142,10 @@ func isAppleDoubleFile(name string, contents []byte) bool {
 	return strings.HasPrefix(path.Base(name), appleDoubleNamePrefix) && bytes.HasPrefix(contents, appleDoubleContentsPrefix)
 }
 
-// externalSlug returns a filesystem-safe identifier derived from an external
+// ExternalSlug returns a filesystem-safe identifier derived from an external
 // relative path. Slashes, backslashes, and colons are replaced with
 // underscores.
-func externalSlug(relPath RelPath) string {
+func ExternalSlug(relPath RelPath) string {
 	s := relPath.String()
 	s = strings.ReplaceAll(s, "/", "_")
 	s = strings.ReplaceAll(s, `\`, "_")
