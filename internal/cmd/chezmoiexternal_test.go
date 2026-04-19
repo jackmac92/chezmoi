@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/alecthomas/assert/v2"
+	"github.com/spf13/cobra"
 
 	"chezmoi.io/chezmoi/internal/chezmoi"
 )
@@ -61,4 +62,29 @@ func TestChezmoiBinaryPath_NonEmpty(t *testing.T) {
 	c := &Config{}
 	got := c.chezmoiBinaryPath()
 	assert.NotZero(t, got)
+}
+
+func TestPassthroughFlags_OnlyChangedIncluded(t *testing.T) {
+	cmd := &cobra.Command{Use: "chezmoi"}
+	fs := cmd.PersistentFlags()
+	fs.Bool("dry-run", false, "")
+	fs.Bool("verbose", false, "")
+	fs.Bool("force", false, "")
+	fs.String("color", "auto", "")
+	must(fs.Set("dry-run", "true"))
+	c := &Config{cmd: cmd}
+	args := c.passthroughFlags()
+	assert.Equal(t, []string{"--dry-run=true"}, args)
+}
+
+func TestPassthroughFlags_MultipleFlags(t *testing.T) {
+	cmd := &cobra.Command{Use: "chezmoi"}
+	fs := cmd.PersistentFlags()
+	fs.BoolP("verbose", "v", false, "")
+	fs.Bool("force", false, "")
+	must(fs.Set("verbose", "true"))
+	must(fs.Set("force", "true"))
+	c := &Config{cmd: cmd}
+	args := c.passthroughFlags()
+	assert.Equal(t, []string{"--force=true", "--verbose=true"}, args)
 }

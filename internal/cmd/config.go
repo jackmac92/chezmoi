@@ -288,6 +288,8 @@ type Config struct {
 	ioregData ioregData
 
 	restoreWindowsConsole func() error
+
+	cmd *cobra.Command
 }
 
 type templateData struct {
@@ -2218,6 +2220,7 @@ func (c *Config) pageDiffOutput(output string) error {
 
 // persistentPreRunRootE performs pre-run actions for the root command.
 func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error {
+	c.cmd = cmd
 	annotations := getAnnotations(cmd)
 
 	// Add the completion template function. This needs cmd, so we can't do it

@@ -47,3 +47,36 @@ func (c *Config) chezmoiBinaryPath() string {
 	}
 	return "chezmoi"
 }
+
+// chezmoiExternalPassthroughFlags is the allowlist of persistent flags that
+// propagate from parent to secondary chezmoi invocation. Ordered so the
+// resulting arg list is deterministic.
+var chezmoiExternalPassthroughFlags = []string{
+	"color",
+	"debug",
+	"dry-run",
+	"force",
+	"keep-going",
+	"no-tty",
+	"refresh-externals",
+	"verbose",
+}
+
+// passthroughFlags returns command-line args representing the subset of
+// persistent flags in chezmoiExternalPassthroughFlags that were explicitly
+// set on the parent CLI (flag.Changed == true).
+func (c *Config) passthroughFlags() []string {
+	if c.cmd == nil {
+		return nil
+	}
+	fs := c.cmd.PersistentFlags()
+	var args []string
+	for _, name := range chezmoiExternalPassthroughFlags {
+		f := fs.Lookup(name)
+		if f == nil || !f.Changed {
+			continue
+		}
+		args = append(args, "--"+name+"="+f.Value.String())
+	}
+	return args
+}
