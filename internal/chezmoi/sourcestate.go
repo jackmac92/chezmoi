@@ -45,6 +45,7 @@ type ExternalType string
 const (
 	ExternalTypeArchive     ExternalType = "archive"
 	ExternalTypeArchiveFile ExternalType = "archive-file"
+	ExternalTypeChezmoi     ExternalType = "chezmoi"
 	ExternalTypeFile        ExternalType = "file"
 	ExternalTypeGitRepo     ExternalType = "git-repo"
 )
@@ -91,6 +92,25 @@ type ExternalPull struct {
 // A WarnFunc is a function that warns the user.
 type WarnFunc func(string, ...any)
 
+// An ExternalChezmoi holds fields specific to chezmoi-type externals.
+type ExternalChezmoi struct {
+	Init       ExternalChezmoiInit  `json:"init"       toml:"init"       yaml:"init"`
+	Apply      ExternalChezmoiApply `json:"apply"      toml:"apply"      yaml:"apply"`
+	ConfigFile AbsPath              `json:"configFile" toml:"configFile" yaml:"configFile"`
+	StateFile  AbsPath              `json:"stateFile"  toml:"stateFile"  yaml:"stateFile"`
+	CacheDir   AbsPath              `json:"cacheDir"   toml:"cacheDir"   yaml:"cacheDir"`
+}
+
+// An ExternalChezmoiInit holds extra args for chezmoi init on a chezmoi-type external.
+type ExternalChezmoiInit struct {
+	Args []string `json:"args" toml:"args" yaml:"args"`
+}
+
+// An ExternalChezmoiApply holds extra args for chezmoi apply on a chezmoi-type external.
+type ExternalChezmoiApply struct {
+	Args []string `json:"args" toml:"args" yaml:"args"`
+}
+
 // An External is an external source.
 type External struct {
 	Type            ExternalType      `json:"type"            toml:"type"            yaml:"type"`
@@ -106,6 +126,7 @@ type External struct {
 	Filter          ExternalFilter    `json:"filter"          toml:"filter"          yaml:"filter"`
 	Format          ArchiveFormat     `json:"format"          toml:"format"          yaml:"format"`
 	Archive         ExternalArchive   `json:"archive"         toml:"archive"         yaml:"archive"`
+	Chezmoi         ExternalChezmoi   `json:"chezmoi"         toml:"chezmoi"         yaml:"chezmoi"`
 	Include         []string          `json:"include"         toml:"include"         yaml:"include"`
 	ArchivePath     string            `json:"path"            toml:"path"            yaml:"path"`
 	Pull            ExternalPull      `json:"pull"            toml:"pull"            yaml:"pull"`
@@ -2458,6 +2479,8 @@ func (s *SourceState) readExternal(
 		return s.readExternalArchive(ctx, externalRelPath, parentSourceRelPath, external, options)
 	case ExternalTypeArchiveFile:
 		return s.readExternalArchiveFile(ctx, externalRelPath, parentSourceRelPath, external, options)
+	case ExternalTypeChezmoi:
+		return nil, nil
 	case ExternalTypeFile:
 		return s.readExternalFile(ctx, externalRelPath, parentSourceRelPath, external, options)
 	case ExternalTypeGitRepo:
