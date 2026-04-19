@@ -11,6 +11,10 @@ var (
 	// that modify directories.
 	GitRepoExternalStateBucket = []byte("gitRepoExternalState")
 
+	// ChezmoiExternalStateBucket is the bucket for recording the state of
+	// chezmoi-type externals.
+	ChezmoiExternalStateBucket = []byte("chezmoiExternalState")
+
 	// ScriptStateBucket is the bucket for recording the state of run once
 	// scripts.
 	ScriptStateBucket = []byte("scriptState")
