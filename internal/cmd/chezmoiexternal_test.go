@@ -60,5 +60,5 @@ func TestExternalChezmoiPaths_PartialOverride(t *testing.T) {
 func TestChezmoiBinaryPath_NonEmpty(t *testing.T) {
 	c := &Config{}
 	got := c.chezmoiBinaryPath()
-	assert.NotEqual(t, "", got)
+	assert.NotZero(t, got)
 }
