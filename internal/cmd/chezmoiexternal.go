@@ -17,6 +17,7 @@ func (c *Config) externalChezmoiPaths(
 	external *chezmoi.External,
 ) (configFile, stateFile, cacheDir chezmoi.AbsPath) {
 	slug := chezmoi.ExternalSlug(externalRelPath)
+	// getConfigFileAbsPath errors are ignored: this helper is only invoked after config resolution, so any resolution error has already surfaced.
 	parentConfigFile, _ := c.getConfigFileAbsPath()
 	parentConfigDir := parentConfigFile.Dir()
 

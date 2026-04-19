@@ -39,3 +39,20 @@ func TestExternalChezmoiPaths_Override(t *testing.T) {
 	assert.Equal(t, "/custom/state.boltdb", stateFile.String())
 	assert.Equal(t, "/custom/cache", cacheDir.String())
 }
+
+func TestExternalChezmoiPaths_PartialOverride(t *testing.T) {
+	c := &Config{
+		customConfigFileAbsPath: chezmoi.NewAbsPath("/home/u/.config/chezmoi/chezmoi.toml"),
+	}
+	c.CacheDirAbsPath = chezmoi.NewAbsPath("/home/u/.cache/chezmoi")
+	relPath := chezmoi.NewRelPath("work-dots")
+	ext := &chezmoi.External{
+		Chezmoi: chezmoi.ExternalChezmoi{
+			ConfigFile: chezmoi.NewAbsPath("/custom/config.toml"),
+		},
+	}
+	configFile, stateFile, cacheDir := c.externalChezmoiPaths(relPath, ext)
+	assert.Equal(t, "/custom/config.toml", configFile.String())
+	assert.Equal(t, "/home/u/.config/chezmoi/externals/work-dots/chezmoistate.boltdb", stateFile.String())
+	assert.Equal(t, "/home/u/.cache/chezmoi/externals/work-dots", cacheDir.String())
+}
