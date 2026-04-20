@@ -2077,6 +2077,7 @@ func (c *Config) newSourceState(
 	sourceState := chezmoi.NewSourceState(append([]chezmoi.SourceStateOption{
 		chezmoi.WithBaseSystem(c.baseSystem),
 		chezmoi.WithCacheDir(c.CacheDirAbsPath),
+		chezmoi.WithChezmoiExternalCmdFunc(c.newChezmoiExternalCmd),
 		chezmoi.WithDefaultTemplateDataFunc(func() map[string]any {
 			return c.getTemplateDataMap(cmd)
 		}),

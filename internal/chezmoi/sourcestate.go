@@ -173,10 +173,28 @@ type SourceState struct {
 	externals               map[RelPath][]*External
 	ignoredRelPaths         chezmoiset.Set[RelPath]
 	warnFunc                WarnFunc
+	chezmoiExternalCmdFunc  ChezmoiExternalCmdFunc
 }
 
 // A SourceStateOption sets an option on a source state.
 type SourceStateOption func(*SourceState)
+
+// A ChezmoiExternalCmdFunc returns an *exec.Cmd that manages a chezmoi-type
+// external. sourceExists indicates whether the source dir already exists on
+// disk, selecting init vs apply.
+type ChezmoiExternalCmdFunc func(
+	externalRelPath RelPath,
+	external *External,
+	sourceExists bool,
+) *exec.Cmd
+
+// WithChezmoiExternalCmdFunc sets the factory used to build subprocess
+// commands for chezmoi-type externals.
+func WithChezmoiExternalCmdFunc(fn ChezmoiExternalCmdFunc) SourceStateOption {
+	return func(s *SourceState) {
+		s.chezmoiExternalCmdFunc = fn
+	}
+}
 
 // WithBaseSystem sets the base system.
 func WithBaseSystem(baseSystem System) SourceStateOption {
@@ -1363,6 +1381,46 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 					stateBucket: GitRepoExternalStateBucket,
 				}
 				allSourceStateEntries[externalRelPath] = append(allSourceStateEntries[externalRelPath], sourceStateCommand)
+			}
+		}
+	}
+
+	// Generate SourceStateCommands for chezmoi-type externals.
+	if s.chezmoiExternalCmdFunc != nil {
+		var chezmoiExternalRelPaths []RelPath
+		for externalRelPath, externals := range s.externals {
+			if s.Ignore(externalRelPath) {
+				continue
+			}
+			for _, external := range externals {
+				if external.Type == ExternalTypeChezmoi {
+					chezmoiExternalRelPaths = append(chezmoiExternalRelPaths, externalRelPath)
+				}
+			}
+		}
+		slices.SortFunc(chezmoiExternalRelPaths, CompareRelPaths)
+		for _, externalRelPath := range chezmoiExternalRelPaths {
+			for _, external := range s.externals[externalRelPath] {
+				sourceDir := s.destDirAbsPath.Join(externalRelPath)
+				fn := s.chezmoiExternalCmdFunc
+				erp := externalRelPath
+				ext := external
+				sourceStateCommand := &SourceStateCommand{
+					cmdFunc: sync.OnceValue(func() *exec.Cmd {
+						_, err := s.system.Lstat(sourceDir)
+						sourceExists := err == nil
+						return fn(erp, ext, sourceExists)
+					}),
+					origin:        external,
+					forceRefresh:  options.RefreshExternals == RefreshExternalsAlways,
+					refreshPeriod: external.RefreshPeriod,
+					sourceAttr: SourceAttr{
+						External: true,
+					},
+					stateBucket: ChezmoiExternalStateBucket,
+				}
+				allSourceStateEntries[externalRelPath] = append(
+					allSourceStateEntries[externalRelPath], sourceStateCommand)
 			}
 		}
 	}
