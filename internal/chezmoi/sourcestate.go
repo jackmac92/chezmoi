@@ -188,14 +188,6 @@ type ChezmoiExternalCmdFunc func(
 	sourceExists bool,
 ) *exec.Cmd
 
-// WithChezmoiExternalCmdFunc sets the factory used to build subprocess
-// commands for chezmoi-type externals.
-func WithChezmoiExternalCmdFunc(fn ChezmoiExternalCmdFunc) SourceStateOption {
-	return func(s *SourceState) {
-		s.chezmoiExternalCmdFunc = fn
-	}
-}
-
 // WithBaseSystem sets the base system.
 func WithBaseSystem(baseSystem System) SourceStateOption {
 	return func(s *SourceState) {
@@ -207,6 +199,14 @@ func WithBaseSystem(baseSystem System) SourceStateOption {
 func WithCacheDir(cacheDirAbsPath AbsPath) SourceStateOption {
 	return func(s *SourceState) {
 		s.cacheDirAbsPath = cacheDirAbsPath
+	}
+}
+
+// WithChezmoiExternalCmdFunc sets the factory used to build subprocess
+// commands for chezmoi-type externals.
+func WithChezmoiExternalCmdFunc(fn ChezmoiExternalCmdFunc) SourceStateOption {
+	return func(s *SourceState) {
+		s.chezmoiExternalCmdFunc = fn
 	}
 }
 
