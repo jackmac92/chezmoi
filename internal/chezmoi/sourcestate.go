@@ -1387,6 +1387,34 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 
 	// Generate SourceStateCommands for chezmoi-type externals.
 	if s.chezmoiExternalCmdFunc != nil {
+		for externalRelPath, externals := range s.externals {
+			for _, external := range externals {
+				if external.Type != ExternalTypeChezmoi {
+					continue
+				}
+				if external.URL == "" {
+					return fmt.Errorf("%s: url is required for chezmoi-type externals", externalRelPath)
+				}
+				if external.Encrypted || external.Exact || external.Executable || external.Private || external.ReadOnly {
+					s.warnFunc(
+						"%s: encrypted/exact/executable/private/readonly have no effect on chezmoi-type externals\n",
+						externalRelPath,
+					)
+				}
+				if external.Format != "" || external.ArchivePath != "" || external.StripComponents != 0 || external.Decompress != "" {
+					s.warnFunc(
+						"%s: archive-specific fields have no effect on chezmoi-type externals\n",
+						externalRelPath,
+					)
+				}
+				if len(external.Clone.Args) != 0 || len(external.Pull.Args) != 0 {
+					s.warnFunc(
+						"%s: clone/pull args have no effect on chezmoi-type externals (use chezmoi.init.args / chezmoi.apply.args)\n",
+						externalRelPath,
+					)
+				}
+			}
+		}
 		if os.Getenv("CHEZMOI_EXTERNAL") == "1" {
 			for externalRelPath, externals := range s.externals {
 				for _, external := range externals {
