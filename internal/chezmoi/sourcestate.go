@@ -1387,6 +1387,18 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 
 	// Generate SourceStateCommands for chezmoi-type externals.
 	if s.chezmoiExternalCmdFunc != nil {
+		if os.Getenv("CHEZMOI_EXTERNAL") == "1" {
+			for externalRelPath, externals := range s.externals {
+				for _, external := range externals {
+					if external.Type == ExternalTypeChezmoi {
+						return fmt.Errorf(
+							"%s: chezmoi-type externals cannot be nested",
+							externalRelPath,
+						)
+					}
+				}
+			}
+		}
 		var chezmoiExternalRelPaths []RelPath
 		for externalRelPath, externals := range s.externals {
 			if s.Ignore(externalRelPath) {
