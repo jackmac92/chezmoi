@@ -1,0 +1,14 @@
+[windows] skip 'UNIX only'
+
+mkgitconfig
+expandenv $WORK/home/user/.local/share/chezmoi/.chezmoiexternal.toml
+
+# simulate being invoked from a parent chezmoi
+env CHEZMOI_EXTERNAL=1
+! exec chezmoi apply
+stderr 'chezmoi-type externals cannot be nested'
+
+-- home/user/.local/share/chezmoi/.chezmoiexternal.toml --
+[".local/share/nested"]
+    type = "chezmoi"
+    url = "file:///nonexistent"
