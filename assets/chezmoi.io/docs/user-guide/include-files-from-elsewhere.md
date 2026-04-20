@@ -272,6 +272,26 @@ for example:
 ```
 <!-- /example-formats -->
 
+## Compose multiple chezmoi repositories
+
+Use the `chezmoi` external type to layer a secondary chezmoi repo into the
+same destination directory:
+
+```toml title="~/.local/share/chezmoi/.chezmoiexternal.toml"
+[".local/share/work-dots"]
+    type = "chezmoi"
+    url = "https://github.com/example/work-dotfiles.git"
+    refreshPeriod = "168h"
+    [".local/share/work-dots".chezmoi.init]
+        args = ["--branch", "main"]
+```
+
+On `chezmoi apply`, the secondary repo is cloned and applied on the first run
+(`chezmoi init --apply`), then updated with `chezmoi update` on subsequent
+refreshes. The secondary uses its own config, persistent state, and cache
+under `<parentConfigDir>/externals/<slug>/` and `<parentCacheDir>/externals/<slug>/`,
+while writing into the same destination directory as the parent.
+
 ## Use git submodules in your source directory
 
 !!! important
