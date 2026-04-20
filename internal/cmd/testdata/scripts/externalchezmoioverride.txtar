@@ -1,0 +1,27 @@
+[windows] skip 'UNIX only'
+[!exec:git] skip 'git not found in $PATH'
+
+mkgitconfig
+
+cd $WORK/secondary
+exec git init
+exec git add .
+exec git commit --message 'initial'
+cd $WORK
+
+expandenv $WORK/home/user/.local/share/chezmoi/.chezmoiexternal.toml
+
+exec chezmoi apply
+exists $HOME/.overridefile
+exists $WORK/custom/state/chezmoistate.boltdb
+
+-- golden/overridefile --
+# override contents
+-- home/user/.local/share/chezmoi/.chezmoiexternal.toml --
+[".local/share/secondary"]
+    type = "chezmoi"
+    url = "file://$WORK/secondary"
+    [".local/share/secondary".chezmoi]
+        stateFile = "$WORK/custom/state/chezmoistate.boltdb"
+-- secondary/dot_overridefile --
+# override contents
