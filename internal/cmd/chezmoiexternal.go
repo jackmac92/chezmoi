@@ -114,6 +114,13 @@ func (c *Config) newChezmoiExternalCmd(
 		args = append(args, external.Chezmoi.Apply.Args...)
 	}
 
+	if !sourceExists {
+		_ = os.MkdirAll(sourceDir.Dir().String(), 0o700)
+	}
+	_ = os.MkdirAll(configFile.Dir().String(), 0o700)
+	_ = os.MkdirAll(stateFile.Dir().String(), 0o700)
+	_ = os.MkdirAll(cacheDir.String(), 0o700)
+
 	cmd := exec.Command(c.chezmoiBinaryPath(), args...)
 	cmd.Stdin = c.stdin
 	cmd.Stdout = c.stdout
