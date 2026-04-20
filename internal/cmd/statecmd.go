@@ -191,6 +191,7 @@ func (c *Config) runStateDeleteBucketCmd(cmd *cobra.Command, args []string) erro
 
 func (c *Config) runStateDumpCmd(cmd *cobra.Command, args []string) error {
 	data, err := chezmoi.PersistentStateData(c.persistentState, map[string][]byte{
+		"chezmoiExternalState":      chezmoi.ChezmoiExternalStateBucket,
 		"configState":               chezmoi.ConfigStateBucket,
 		"entryState":                chezmoi.EntryStateBucket,
 		"gitHubKeysState":           gitHubKeysStateBucket,

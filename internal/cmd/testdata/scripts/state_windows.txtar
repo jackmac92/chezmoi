@@ -19,6 +19,7 @@ exec chezmoi --force state reset
 ! exists $CHEZMOICONFIGDIR/chezmoistate.boltdb
 
 -- golden/dump.yaml --
+chezmoiExternalState: {}
 configState: {}
 entryState: {}
 gitHubKeysState: {}

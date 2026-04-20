@@ -38,6 +38,7 @@ stdout 70396a619400b7f78dbb83ab8ddb76ffe0b8e31557e64bab2ca9677818a52135:
 stdout runAt:
 
 -- golden/dump.yaml --
+chezmoiExternalState: {}
 configState: {}
 entryState: {}
 gitHubKeysState: {}
