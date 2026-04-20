@@ -157,15 +157,15 @@ func TestNewChezmoiExternalCmd_Apply(t *testing.T) {
 	}
 	relPath := chezmoi.NewRelPath(".local/share/work-dots")
 	cobraCmd := c.newChezmoiExternalCmd(relPath, ext, true)
-	hasApply, hasInit := false, false
+	hasUpdate, hasInit := false, false
 	for _, a := range cobraCmd.Args {
-		if a == "apply" {
-			hasApply = true
+		if a == "update" {
+			hasUpdate = true
 		}
 		if a == "init" {
 			hasInit = true
 		}
 	}
-	assert.True(t, hasApply)
+	assert.True(t, hasUpdate)
 	assert.False(t, hasInit)
 }

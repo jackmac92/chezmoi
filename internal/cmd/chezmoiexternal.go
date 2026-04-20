@@ -110,7 +110,7 @@ func (c *Config) newChezmoiExternalCmd(
 		args = append(args, "init", "--apply", external.URL)
 		args = append(args, external.Chezmoi.Init.Args...)
 	} else {
-		args = append(args, "apply")
+		args = append(args, "update")
 		args = append(args, external.Chezmoi.Apply.Args...)
 	}
 

@@ -1,0 +1,42 @@
+[windows] skip 'UNIX only'
+[!exec:git] skip 'git not found in $PATH'
+
+mkgitconfig
+
+cd $WORK/secondary
+exec git init
+exec git add .
+exec git commit --message 'initial secondary commit'
+cd $WORK
+
+expandenv $WORK/home/user/.local/share/chezmoi/.chezmoiexternal.toml
+
+# first apply
+exec chezmoi apply
+cmp $HOME/.secondaryfile golden/secondaryfile
+
+# edit secondary
+cp golden/secondaryfile2 $WORK/secondary/dot_secondaryfile
+cd $WORK/secondary
+exec git commit --message 'edit secondaryfile' .
+cd $WORK
+
+# within refreshPeriod — second apply should NOT pick up change
+exec chezmoi apply
+! grep 'version 2' $HOME/.secondaryfile
+
+# with --refresh-externals=always — should pick up change
+exec chezmoi apply --refresh-externals=always
+grep 'version 2' $HOME/.secondaryfile
+
+-- golden/secondaryfile --
+# contents of secondaryfile
+-- golden/secondaryfile2 --
+# contents of secondaryfile — version 2
+-- home/user/.local/share/chezmoi/.chezmoiexternal.toml --
+[".local/share/secondary"]
+    type = "chezmoi"
+    url = "file://$WORK/secondary"
+    refreshPeriod = "1h"
+-- secondary/dot_secondaryfile --
+# contents of secondaryfile
