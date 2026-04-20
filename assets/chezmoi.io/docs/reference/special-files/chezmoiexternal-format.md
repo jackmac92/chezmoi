@@ -20,15 +20,15 @@ ignored.
 
 Entries are indexed by target name relative to the directory of the
 `.chezmoiexternal.$FORMAT` file, and must have a `type` and a `url` and/or a
-`urls` field. `type` can be either `file`, `archive`, `archive-file`, or
-`git-repo`. If the entry's parent directories do not already exist in the source
+`urls` field. `type` can be either `file`, `archive`, `archive-file`,
+`git-repo`, or `chezmoi`. If the entry's parent directories do not already exist in the source
 state then chezmoi will create them as regular directories.
 
 Entries may have the following fields:
 
 | Variable                     | Type     | Default value | Description                                                      |
 | ---------------------------- | -------- | ------------- | ---------------------------------------------------------------- |
-| `type`                       | string   | *none*        | External type (`file`, `archive`, `archive-file`, or `git-repo`) |
+| `type`                       | string   | *none*        | External type (`file`, `archive`, `archive-file`, `git-repo`, or `chezmoi`) |
 | `decompress`                 | string   | *none*        | Decompression for file                                           |
 | `encrypted`                  | bool     | `false`       | Whether the external is encrypted                                |
 | `exact`                      | bool     | `false`       | Add `exact_` attribute to directories in archive                 |
@@ -184,6 +184,24 @@ If `type` is `git-repo` then chezmoi will run `git clone $URL $TARGET_NAME` with
 the optional `clone.args` if the target does not exist. If the target exists,
 then chezmoi will run `git pull` with the optional `pull.args` to update the
 target.
+
+If `type` is `chezmoi` then chezmoi will run a secondary chezmoi instance
+against its own isolated source directory, config file, persistent state, and
+cache directory, but writing into the same destination directory as the parent.
+On first apply chezmoi runs `chezmoi init --apply <url>`; on subsequent applies
+chezmoi runs `chezmoi update` so that upstream changes are pulled and applied.
+`chezmoi.init.args` and `chezmoi.apply.args` append extra arguments to the init
+and update invocations respectively. The secondary's isolated paths default to
+`<parentConfigDir>/externals/<slug>/chezmoi.toml`,
+`<parentConfigDir>/externals/<slug>/chezmoistate.boltdb`, and
+`<parentCacheDir>/externals/<slug>`, where `<slug>` is the external's relative
+path with `/`, `\`, and `:` replaced by `_`. These paths can be overridden via
+`chezmoi.configFile`, `chezmoi.stateFile`, and `chezmoi.cacheDir`. The parent
+flags `--color`, `--debug`, `--dry-run`, `--force`, `--keep-going`, `--no-tty`,
+`--refresh-externals`, and `--verbose` propagate to the secondary invocation
+when explicitly set on the parent CLI. Chezmoi-type externals cannot be nested:
+the secondary instance refuses to process `type = "chezmoi"` externals of its
+own.
 
 For `file` and `archive` externals, chezmoi will cache downloaded URLs. The
 optional duration `refreshPeriod` field specifies how often chezmoi will
