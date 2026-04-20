@@ -88,3 +88,84 @@ func TestPassthroughFlags_MultipleFlags(t *testing.T) {
 	args := c.passthroughFlags()
 	assert.Equal(t, []string{"--force=true", "--verbose=true"}, args)
 }
+
+func TestNewChezmoiExternalCmd_Init(t *testing.T) {
+	cmd := &cobra.Command{Use: "chezmoi"}
+	fs := cmd.PersistentFlags()
+	fs.Bool("dry-run", false, "")
+	must(fs.Set("dry-run", "true"))
+
+	c := &Config{
+		cmd:                     cmd,
+		customConfigFileAbsPath: chezmoi.NewAbsPath("/home/u/.config/chezmoi/chezmoi.toml"),
+		stdin:                   nil,
+		stdout:                  nil,
+		stderr:                  nil,
+	}
+	c.DestDirAbsPath = chezmoi.NewAbsPath("/home/u")
+	c.CacheDirAbsPath = chezmoi.NewAbsPath("/home/u/.cache/chezmoi")
+	ext := &chezmoi.External{
+		URL: "https://example.com/dots.git",
+		Chezmoi: chezmoi.ExternalChezmoi{
+			Init: chezmoi.ExternalChezmoiInit{Args: []string{"--branch", "main"}},
+		},
+	}
+	relPath := chezmoi.NewRelPath(".local/share/work-dots")
+	cobraCmd := c.newChezmoiExternalCmd(relPath, ext, false)
+
+	got := cobraCmd.Args
+	wantContains := []string{
+		"--source", "/home/u/.local/share/work-dots",
+		"--destination", "/home/u",
+		"--config", "/home/u/.config/chezmoi/externals/.local_share_work-dots/chezmoi.toml",
+		"--persistent-state", "/home/u/.config/chezmoi/externals/.local_share_work-dots/chezmoistate.boltdb",
+		"--cache", "/home/u/.cache/chezmoi/externals/.local_share_work-dots",
+		"--dry-run=true",
+		"init", "--apply", "https://example.com/dots.git",
+		"--branch", "main",
+	}
+	for _, w := range wantContains {
+		found := false
+		for _, a := range got {
+			if a == w {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "arg %q not in %v", w, got)
+	}
+	hasEnv := false
+	for _, e := range cobraCmd.Env {
+		if e == "CHEZMOI_EXTERNAL=1" {
+			hasEnv = true
+			break
+		}
+	}
+	assert.True(t, hasEnv)
+}
+
+func TestNewChezmoiExternalCmd_Apply(t *testing.T) {
+	cmd := &cobra.Command{Use: "chezmoi"}
+	c := &Config{
+		cmd:                     cmd,
+		customConfigFileAbsPath: chezmoi.NewAbsPath("/home/u/.config/chezmoi/chezmoi.toml"),
+	}
+	c.DestDirAbsPath = chezmoi.NewAbsPath("/home/u")
+	c.CacheDirAbsPath = chezmoi.NewAbsPath("/home/u/.cache/chezmoi")
+	ext := &chezmoi.External{
+		URL: "https://example.com/dots.git",
+	}
+	relPath := chezmoi.NewRelPath(".local/share/work-dots")
+	cobraCmd := c.newChezmoiExternalCmd(relPath, ext, true)
+	hasApply, hasInit := false, false
+	for _, a := range cobraCmd.Args {
+		if a == "apply" {
+			hasApply = true
+		}
+		if a == "init" {
+			hasInit = true
+		}
+	}
+	assert.True(t, hasApply)
+	assert.False(t, hasInit)
+}

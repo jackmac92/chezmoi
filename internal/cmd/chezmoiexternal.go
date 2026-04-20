@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"os/exec"
 
 	"chezmoi.io/chezmoi/internal/chezmoi"
 )
@@ -79,4 +80,44 @@ func (c *Config) passthroughFlags() []string {
 		args = append(args, "--"+name+"="+f.Value.String())
 	}
 	return args
+}
+
+// chezmoiExternalEnvVar is set by a parent chezmoi invocation when spawning
+// a chezmoi-type external. Used as a recursion guard.
+const chezmoiExternalEnvVar = "CHEZMOI_EXTERNAL"
+
+// newChezmoiExternalCmd returns an *exec.Cmd that invokes the chezmoi binary
+// to manage a chezmoi-type external. If sourceExists is false, the subprocess
+// runs `chezmoi init --apply <url>`; otherwise `chezmoi apply`.
+func (c *Config) newChezmoiExternalCmd(
+	externalRelPath chezmoi.RelPath,
+	external *chezmoi.External,
+	sourceExists bool,
+) *exec.Cmd {
+	sourceDir := c.DestDirAbsPath.Join(externalRelPath)
+	configFile, stateFile, cacheDir := c.externalChezmoiPaths(externalRelPath, external)
+
+	args := []string{
+		"--source", sourceDir.String(),
+		"--destination", c.DestDirAbsPath.String(),
+		"--config", configFile.String(),
+		"--persistent-state", stateFile.String(),
+		"--cache", cacheDir.String(),
+	}
+	args = append(args, c.passthroughFlags()...)
+
+	if !sourceExists {
+		args = append(args, "init", "--apply", external.URL)
+		args = append(args, external.Chezmoi.Init.Args...)
+	} else {
+		args = append(args, "apply")
+		args = append(args, external.Chezmoi.Apply.Args...)
+	}
+
+	cmd := exec.Command(c.chezmoiBinaryPath(), args...)
+	cmd.Stdin = c.stdin
+	cmd.Stdout = c.stdout
+	cmd.Stderr = c.stderr
+	cmd.Env = append(os.Environ(), chezmoiExternalEnvVar+"=1")
+	return cmd
 }
