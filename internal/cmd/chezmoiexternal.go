@@ -36,11 +36,11 @@ func (c *Config) externalChezmoiPaths(
 	if cacheDir.IsEmpty() {
 		cacheDir = c.CacheDirAbsPath.JoinString(chezmoiExternalsSubdir, slug)
 	}
-	return
+	return configFile, stateFile, cacheDir
 }
 
 // chezmoiBinaryPath returns the path to the chezmoi binary to invoke for
-// chezmoi-type externals. Falls back to "chezmoi" in PATH if os.Executable
+// chezmoi-type externals. Falls back to "chezmoi" in PATH if [os.Executable]
 // fails.
 func (c *Config) chezmoiBinaryPath() string {
 	if path, err := os.Executable(); err == nil {
@@ -86,7 +86,7 @@ func (c *Config) passthroughFlags() []string {
 // a chezmoi-type external. Used as a recursion guard.
 const chezmoiExternalEnvVar = "CHEZMOI_EXTERNAL"
 
-// newChezmoiExternalCmd returns an *exec.Cmd that invokes the chezmoi binary
+// newChezmoiExternalCmd returns an [*exec.Cmd] that invokes the chezmoi binary
 // to manage a chezmoi-type external. If sourceExists is false, the subprocess
 // runs `chezmoi init --apply <url>`; otherwise `chezmoi apply`.
 func (c *Config) newChezmoiExternalCmd(

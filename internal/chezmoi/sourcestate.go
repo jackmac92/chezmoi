@@ -101,12 +101,14 @@ type ExternalChezmoi struct {
 	CacheDir   AbsPath              `json:"cacheDir"   toml:"cacheDir"   yaml:"cacheDir"`
 }
 
-// An ExternalChezmoiInit holds extra args for chezmoi init on a chezmoi-type external.
+// An ExternalChezmoiInit holds extra args for chezmoi init on a
+// chezmoi-type external.
 type ExternalChezmoiInit struct {
 	Args []string `json:"args" toml:"args" yaml:"args"`
 }
 
-// An ExternalChezmoiApply holds extra args for chezmoi apply on a chezmoi-type external.
+// An ExternalChezmoiApply holds extra args for chezmoi apply on a
+// chezmoi-type external.
 type ExternalChezmoiApply struct {
 	Args []string `json:"args" toml:"args" yaml:"args"`
 }
@@ -179,7 +181,7 @@ type SourceState struct {
 // A SourceStateOption sets an option on a source state.
 type SourceStateOption func(*SourceState)
 
-// A ChezmoiExternalCmdFunc returns an *exec.Cmd that manages a chezmoi-type
+// A ChezmoiExternalCmdFunc returns an [*exec.Cmd] that manages a chezmoi-type
 // external. sourceExists indicates whether the source dir already exists on
 // disk, selecting init vs apply.
 type ChezmoiExternalCmdFunc func(
@@ -1401,7 +1403,10 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 						externalRelPath,
 					)
 				}
-				if external.Format != "" || external.ArchivePath != "" || external.StripComponents != 0 || external.Decompress != "" {
+				if external.Format != "" ||
+					external.ArchivePath != "" ||
+					external.StripComponents != 0 ||
+					external.Decompress != "" {
 					s.warnFunc(
 						"%s: archive-specific fields have no effect on chezmoi-type externals\n",
 						externalRelPath,

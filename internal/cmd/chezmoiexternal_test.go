@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/alecthomas/assert/v2"
@@ -125,23 +126,9 @@ func TestNewChezmoiExternalCmd_Init(t *testing.T) {
 		"--branch", "main",
 	}
 	for _, w := range wantContains {
-		found := false
-		for _, a := range got {
-			if a == w {
-				found = true
-				break
-			}
-		}
-		assert.True(t, found, "arg %q not in %v", w, got)
+		assert.True(t, slices.Contains(got, w), "arg %q not in %v", w, got)
 	}
-	hasEnv := false
-	for _, e := range cobraCmd.Env {
-		if e == "CHEZMOI_EXTERNAL=1" {
-			hasEnv = true
-			break
-		}
-	}
-	assert.True(t, hasEnv)
+	assert.True(t, slices.Contains(cobraCmd.Env, "CHEZMOI_EXTERNAL=1"))
 }
 
 func TestNewChezmoiExternalCmd_Apply(t *testing.T) {
