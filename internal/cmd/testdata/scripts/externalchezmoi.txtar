@@ -1,0 +1,32 @@
+[windows] skip 'UNIX only'
+[!exec:git] skip 'git not found in $PATH'
+
+mkgitconfig
+
+# create the secondary chezmoi source as a git repo
+cd $WORK/secondary
+exec git init
+exec git add .
+exec git commit --message 'initial secondary commit'
+cd $WORK
+
+# set up the primary chezmoi source with a chezmoi-type external
+expandenv $WORK/home/user/.local/share/chezmoi/.chezmoiexternal.toml
+
+# first apply: secondary is cloned via chezmoi init --apply
+exec chezmoi apply
+exists $HOME/.secondaryfile
+cmp $HOME/.secondaryfile golden/secondaryfile
+
+# second apply: secondary source exists, should run apply not init
+exec chezmoi apply
+exists $HOME/.secondaryfile
+
+-- golden/secondaryfile --
+# contents of secondaryfile
+-- home/user/.local/share/chezmoi/.chezmoiexternal.toml --
+[".local/share/secondary"]
+    type = "chezmoi"
+    url = "file://$WORK/secondary"
+-- secondary/dot_secondaryfile --
+# contents of secondaryfile
