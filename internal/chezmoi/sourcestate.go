@@ -1401,15 +1401,22 @@ func (s *SourceState) Read(ctx context.Context, options *ReadOptions) error {
 		slices.SortFunc(chezmoiExternalRelPaths, CompareRelPaths)
 		for _, externalRelPath := range chezmoiExternalRelPaths {
 			for _, external := range s.externals[externalRelPath] {
+				if external.Type != ExternalTypeChezmoi {
+					continue
+				}
 				sourceDir := s.destDirAbsPath.Join(externalRelPath)
-				fn := s.chezmoiExternalCmdFunc
-				erp := externalRelPath
-				ext := external
+				var sourceExists bool
+				switch _, err := s.system.Lstat(sourceDir); {
+				case err == nil:
+					sourceExists = true
+				case errors.Is(err, fs.ErrNotExist):
+					sourceExists = false
+				default:
+					return err
+				}
 				sourceStateCommand := &SourceStateCommand{
 					cmdFunc: sync.OnceValue(func() *exec.Cmd {
-						_, err := s.system.Lstat(sourceDir)
-						sourceExists := err == nil
-						return fn(erp, ext, sourceExists)
+						return s.chezmoiExternalCmdFunc(externalRelPath, external, sourceExists)
 					}),
 					origin:        external,
 					forceRefresh:  options.RefreshExternals == RefreshExternalsAlways,
